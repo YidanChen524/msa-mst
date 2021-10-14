@@ -27,8 +27,8 @@ class Graph:
                     key[v] = self.G[src_v][v]
                     src[v] = src_v
             # find the new vertex with minimum key
-            min_key = sys.maxsize
-            min_v = None
+            min_key = key[src_v]
+            min_v = src_v
             for v in range(self.V):
                 if key[v] < min_key and mst[v] is False:
                     min_key = key[v]
