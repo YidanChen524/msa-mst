@@ -113,7 +113,7 @@ if __name__ == "__main__":
     print(f">{names[1]}\n" + optimal_alignment[1] + "\n")
     print(f">{names[2]}\n" + optimal_alignment[2] + "\n")
     # write results to file
-    with open("../archived/sp_exact_3_output.txt", "w") as f:
+    with open("sp_exact_3_output.txt", "w") as f:
         f.write("; optimal score: " + str(optimal_score) + "\n\n")
         f.write(f">{names[0]}\n" + optimal_alignment[0] + "\n\n")
         f.write(f">{names[1]}\n" + optimal_alignment[1] + "\n\n")

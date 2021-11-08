@@ -75,7 +75,7 @@ class FibonacciHeap:
 
     def consolidate(self):
         # merge nodes with same degree on the root list
-        arr = [None] * self.root.degree
+        arr = [None] * (self.root.degree + 1)
         while self.root.degree > 0:
             n1 = self.root.remove_child(self.root.children)
             n2 = arr[n1.degree]

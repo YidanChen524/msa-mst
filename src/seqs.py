@@ -17,6 +17,7 @@ class Seqs:
         self.alignments = AlmNode()
         self.if_aligned = [False] * self.len
         self.D = [[0 for _ in range(self.len)] for _ in range(self.len)]
+        self.guide_tree = None
         self.distance_matrix()
 
     def __repr__(self):
@@ -96,15 +97,22 @@ class Seqs:
         """align seqs[ind] to the alignments so far"""
         a1, a2 = self.pairwise_alignment(src, dest)
         ptr = self.alignments
-        if not self.if_aligned[src] and not self.if_aligned[dest]:
+        # initialize alignments nodes
+        if not self.alignments.next:
             for i in range(len(a1)):
                 ptr.next = AlmNode(self.len)
                 ptr = ptr.next
                 ptr.val[src] = a1[i]
                 ptr.val[dest] = a2[i]
+        # when src node has not been aligned yet (for sorted guide tree)
+        elif not self.if_aligned[src]:
+            pass
+        # align dest node based on src node
         else:
             for i in range(len(a1)):
-                if ptr.next.val[src] != a1[i]:
+                while ptr.next and ptr.next.val[src] != a1[i] and ptr.next.val[src] == '-':
+                    ptr = ptr.next
+                if not ptr.next or ptr.next.val[src] != a1[i]:
                     node = AlmNode(self.len)
                     node.next = ptr.next
                     ptr.next = node
@@ -112,20 +120,26 @@ class Seqs:
                 ptr.val[dest] = a2[i]
         self.if_aligned[src] = self.if_aligned[dest] = True
 
-    def global_align(self, option, suboption=None):
+    def global_align(self, option, option2=None, option3=None):
         if option == "prim_mst":
             g = Graph(self.D)
-            if suboption == "list":
-                mst = g.prim_list_mst()
-            elif suboption == "fheap":
-                mst = g.prim_fheap_mst()
-            for src, dest, _ in mst:
+            if option2 == "list":
+                self.guide_tree = g.prim_list_mst()
+            elif option2 == "fheap":
+                self.guide_tree = g.prim_fheap_mst()
+            if option3 == "sorted":
+                self.guide_tree.sort(key=lambda x: x[2])
+            for src, dest, _ in self.guide_tree:
                 self.add_to_alignments(src, dest)
         if option == "approx":
             _, center = min((sum(val), ind) for (ind, val) in enumerate(self.D))
+            self.guide_tree = [None] * (self.len - 1)
+            pos = 0
             for i in range(self.len):
                 if i != center:
                     self.add_to_alignments(center, i)
+                    self.guide_tree[pos] = (center, i, None)
+                    pos += 1
 
     def output_alignments(self, save=False):
         for i in range(self.len):
@@ -136,4 +150,50 @@ class Seqs:
                 ptr = ptr.next
             print(f">{self.names[i]}")
             print(a, '\n')
+
+    def test_alignments(self):
+        """
+        test if alignments are correct:
+        - no positions with all gaps
+        - induced pairwise alignments equals pairwise alignments when stripped extra gaps
+        """
+        # check if there are positions with all gaps
+        ptr = self.alignments
+        pos = 0
+        while ptr.next:
+            if "".join(ptr.next.val) == '-' * self.len:
+                return f"Test Fail: All Gaps at Position {pos}"
+            else:
+                ptr = ptr.next
+                pos += 1
+        # check if induced pairwise alignments equals pairwise alignments when stripped extra gaps
+        for i, j, _ in self.guide_tree:
+            a1, a2 = self.pairwise_alignment(i, j)
+            msa1 = msa2 = ""
+            ptr = self.alignments
+            while ptr.next:
+                if ptr.next.val[i] != '-' or ptr.next.val[j] != '-':
+                    msa1 += ptr.next.val[i]
+                    msa2 += ptr.next.val[j]
+                ptr = ptr.next
+            if a1 != msa1 or a2 != msa2:
+                return "Test Fail: Induced Pairwise Alignment not Correct"
+
+        return "Test Success"
+
+    def sp_score(self):
+        ptr = self.alignments
+        cost = 0
+        while ptr.next:
+            for i in range(self.len):
+                for j in range(i+1, self.len):
+                    if ptr.next.val[i] == ptr.next.val[j]:
+                        cost += 0
+                    elif ptr.next.val[i] == '-' or ptr.next.val[j] == '-':
+                        cost += gap
+                    else:
+                        cost += score[mapping[ptr.next.val[i]]][mapping[ptr.next.val[j]]]
+            ptr = ptr.next
+        return cost
+
 
