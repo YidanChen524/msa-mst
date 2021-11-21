@@ -1,6 +1,9 @@
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 from config import gap, score, mapping
-from graph import Graph
 from helpers import string_concat
+from .graph import Graph
 
 
 class AlmNode:
@@ -28,7 +31,7 @@ class Seqs:
 
     def distance_matrix(self):
         for i in range(self.len):
-            for j in range(i+1, self.len):
+            for j in range(i + 1, self.len):
                 self.D[i][j] = self.D[j][i] = self.pairwise_score(i, j)
 
     def pairwise_score(self, ind1: int, ind2: int) -> int:
@@ -45,13 +48,13 @@ class Seqs:
                 if i == 0 and j == 0:
                     v0 = 0
                 if i > 0 and j >= 0:
-                    v1 = T[i-1][j] + gap
+                    v1 = T[i - 1][j] + gap
                 if i >= 0 and j > 0:
-                    v2 = T[i][j-1] + gap
+                    v2 = T[i][j - 1] + gap
                 if i > 0 and j > 0:
-                    v3 = T[i-1][j-1] + score[mapping[seq1[i-1]]][mapping[seq2[j-1]]]
+                    v3 = T[i - 1][j - 1] + score[mapping[seq1[i - 1]]][mapping[seq2[j - 1]]]
                 T[i][j] = min([v for v in [v0, v1, v2, v3] if v is not None])
-        return T[m-1][n-1]
+        return T[m - 1][n - 1]
 
     def pairwise_alignment(self, ind1, ind2):
         seq1 = self.seqs[ind1]
@@ -66,11 +69,11 @@ class Seqs:
                 if i == 0 and j == 0:
                     v0 = 0
                 if i > 0 and j >= 0:
-                    v1 = T[i-1][j] + gap
+                    v1 = T[i - 1][j] + gap
                 if i >= 0 and j > 0:
-                    v2 = T[i][j-1] + gap
+                    v2 = T[i][j - 1] + gap
                 if i > 0 and j > 0:
-                    v3 = T[i-1][j-1] + score[mapping[seq1[i-1]]][mapping[seq2[j-1]]]
+                    v3 = T[i - 1][j - 1] + score[mapping[seq1[i - 1]]][mapping[seq2[j - 1]]]
                 T[i][j] = min([v for v in [v0, v1, v2, v3] if v is not None])
         # alignments
         i = m - 1
@@ -78,17 +81,17 @@ class Seqs:
         a1 = a2 = ''
         while i > 0 or j > 0:
             v = T[i][j]
-            if i > 0 and j > 0 and v == T[i-1][j-1] + score[mapping[seq1[i-1]]][mapping[seq2[j-1]]]:
-                a1 = string_concat(seq1[i-1], a1)
-                a2 = string_concat(seq2[j-1], a2)
+            if i > 0 and j > 0 and v == T[i - 1][j - 1] + score[mapping[seq1[i - 1]]][mapping[seq2[j - 1]]]:
+                a1 = string_concat(seq1[i - 1], a1)
+                a2 = string_concat(seq2[j - 1], a2)
                 i -= 1
                 j -= 1
-            elif i > 0 and v == T[i-1][j] + gap:
-                a1 = string_concat(seq1[i-1], a1)
+            elif i > 0 and v == T[i - 1][j] + gap:
+                a1 = string_concat(seq1[i - 1], a1)
                 a2 = string_concat('-', a2)
                 i -= 1
-            elif j > 0 and v == T[i][j-1] + gap:
-                a2 = string_concat(seq2[j-1], a2)
+            elif j > 0 and v == T[i][j - 1] + gap:
+                a2 = string_concat(seq2[j - 1], a2)
                 a1 = string_concat('-', a1)
                 j -= 1
         return a1, a2
@@ -186,7 +189,7 @@ class Seqs:
         cost = 0
         while ptr.next:
             for i in range(self.len):
-                for j in range(i+1, self.len):
+                for j in range(i + 1, self.len):
                     if ptr.next.val[i] == ptr.next.val[j]:
                         cost += 0
                     elif ptr.next.val[i] == '-' or ptr.next.val[j] == '-':
@@ -195,5 +198,3 @@ class Seqs:
                         cost += score[mapping[ptr.next.val[i]]][mapping[ptr.next.val[j]]]
             ptr = ptr.next
         return cost
-
-

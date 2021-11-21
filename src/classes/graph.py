@@ -1,5 +1,5 @@
 import sys
-from fheap import FibonacciHeap
+from .fheap import FibonacciHeap
 
 
 class Graph:

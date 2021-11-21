@@ -1,4 +1,5 @@
 import sys
+import math
 
 
 class Node:
@@ -75,7 +76,7 @@ class FibonacciHeap:
 
     def consolidate(self):
         # merge nodes with same degree on the root list
-        arr = [None] * (self.root.degree + 1)
+        arr = [None] * math.ceil(math.log(self.count + 1, 2))
         while self.root.degree > 0:
             n1 = self.root.remove_child(self.root.children)
             n2 = arr[n1.degree]
@@ -86,7 +87,10 @@ class FibonacciHeap:
                 else:
                     n2.add_child(n1)
                     n1 = n2
-                n2 = arr[n1.degree]
+                if n1.degree >= len(arr):
+                    arr.append(n1)
+                else:
+                    n2 = arr[n1.degree]
             arr[n1.degree] = n1
         # add merged nodes back to root
         for n in arr:
